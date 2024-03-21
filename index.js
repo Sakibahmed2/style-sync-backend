@@ -27,9 +27,34 @@ async function run() {
     const db = client.db("styleSync");
     const productsCollection = db.collection("products");
 
+    //create product
     app.post("/api/v1/products", async (req, res) => {
-      const { image } = req.body;
-      const result = await productsCollection.insertOne({});
+      const { image, title, rating, price, brand, description } = req.body;
+      const result = await productsCollection.insertOne({
+        image,
+        title,
+        rating,
+        price,
+        brand,
+        description,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "Products created successfully",
+        data: result,
+      });
+    });
+
+    //get all product
+    app.get("/api/v1/products", async (req, res) => {
+      const result = await productsCollection.find().toArray();
+
+      res.status(200).json({
+        success: true,
+        message: "Products retrieved successfully",
+        data: result,
+      });
     });
 
     // Start the server
