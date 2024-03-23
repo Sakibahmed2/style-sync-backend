@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const bcrypt = require("bcrypt");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 const app = express();
@@ -29,7 +28,16 @@ async function run() {
 
     //create product
     app.post("/api/v1/products", async (req, res) => {
-      const { image, title, rating, price, brand, description } = req.body;
+      const {
+        image,
+        title,
+        rating,
+        price,
+        brand,
+        description,
+        sale,
+        salePrice,
+      } = req.body;
       const result = await productsCollection.insertOne({
         image,
         title,
@@ -37,6 +45,8 @@ async function run() {
         price,
         brand,
         description,
+        sale,
+        salePrice,
       });
 
       res.status(201).json({
@@ -48,7 +58,37 @@ async function run() {
 
     //get all product
     app.get("/api/v1/products", async (req, res) => {
-      const result = await productsCollection.find().toArray();
+      const { category } = req.query;
+
+      const filter = {};
+      if (category) {
+        filter.category = category;
+      }
+
+      try {
+        const result = await productsCollection.find(filter).toArray();
+
+        res.status(200).json({
+          success: true,
+          message: "Products retrieved successfully",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Failed to retrieve products",
+          error: error.message,
+        });
+      }
+    });
+
+    //get single product
+    app.get("/api/v1/products/:id", async (req, res) => {
+      const { id } = req.params;
+
+      const query = { _id: new ObjectId(id) };
+
+      const result = await productsCollection.findOne(query);
 
       res.status(200).json({
         success: true,
